@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overtime Timesheet - Md. Maruf Hasan</title>
+    <!-- jsPDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --accent: #0f766e;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #334155;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.05);
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .company-info h1 {
+            margin: 0;
+            font-size: 24px;
+            color: var(--primary);
+            letter-spacing: -0.5px;
+        }
+
+        .company-info p {
+            margin: 4px 0 0 0;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .emp-badge {
+            background: #f1f5f9;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            transition: opacity 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .btn-pdf {
+            background-color: #0284c7;
+            color: white;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: var(--primary);
+            padding: 12px 16px;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr.friday {
+            background-color: #fef2f2;
+            color: #991b1b;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-card .value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-top: 4px;
+        }
+
+        .stat-card .label {
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <div class="header">
+            <div class="company-info">
+                <h1>MONTHLY OVERTIME TIMESHEET</h1>
+                <p>Standard Duty: 8:00 AM - 5:00 PM | Rate: 10.62 SAR/hr | Food Allowance: 17 SAR/day</p>
+            </div>
+            <div class="emp-badge">
+                Employee: Md. Maruf Hasan
+            </div>
+        </div>
+
+        <div class="input-grid">
+            <div class="form-group">
+                <label for="entryDate">Date</label>
+                <input type="date" id="entryDate">
+            </div>
+            <div class="form-group">
+                <label for="leaveTime">Leave Time (PM Format)</label>
+                <input type="time" id="leaveTime">
+            </div>
+            <button class="btn btn-primary" onclick="addEntry()">Add Entry</button>
+            <button class="btn btn-pdf" onclick="generatePDF()">Export Professional PDF</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Day</th>
+                        <th>Leave Time</th>
+                        <th>OT Hours</th>
+                        <th>Food Allowance</th>
+                        <th>OT Pay</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="label">Total OT Days</div>
+                <div class="value" id="totalOtDays">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Total OT Hours</div>
+                <div class="value" id="totalOtHours">0.00 hrs</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Food Allowance</div>
+                <div class="value" id="totalFood">0.00 SAR</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Total OT Pay</div>
+                <div class="value" id="totalOtPay">0.00 SAR</div>
+            </div>
+            <div class="stat-card" style="background: #f0fdf4; border-color: #bbf7d0;">
+                <div class="label" style="color: #166534;">Grand Total</div>
+                <div class="value" id="grandTotal" style="color: #15803d;">0.00 SAR</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const OT_RATE = 10.62;
+    const FOOD_ALLOWANCE = 17;
+
+    // Default Initial Data (September 2026)
+    let records = [
+        { date: '2026-09-01', day: 'Tuesday', time: '21:00', otHours: 4.0, foodMoney: 17, otPay: 42.48 },
+        { date: '2026-09-02', day: 'Wednesday', time: '19:00', otHours: 2.0, foodMoney: 17, otPay: 21.24 },
+        { date: '2026-09-03', day: 'Thursday', time: '20:00', otHours: 3.0, foodMoney: 17, otPay: 31.86 },
+        { date: '2026-09-04', day: 'Friday', time: '00:00', otHours: 0.0, foodMoney: 0, otPay: 0.00 },
+        { date: '2026-09-05', day: 'Saturday', time: '18:00', otHours: 1.0, foodMoney: 17, otPay: 10.62 },
+        { date: '2026-09-06', day: 'Sunday', time: '18:00', otHours: 1.0, foodMoney: 17, otPay: 10.62 },
+        { date: '2026-09-07', day: 'Monday', time: '18:00', otHours: 1.0, foodMoney: 17, otPay: 10.62 },
+        { date: '2026-09-08', day: 'Tuesday', time: '16:00', otHours: 0.0, foodMoney: 0, otPay: 0.00 },
+        { date: '2026-09-09', day: 'Wednesday', time: '18:00', otHours: 1.0, foodMoney: 17, otPay: 10.62 },
+        { date: '2026-09-10', day: 'Thursday', time: '18:00', otHours: 1.0, foodMoney: 17, otPay: 10.62 },
+        { date: '2026-09-11', day: 'Friday', time: '00:00', otHours: 0.0, foodMoney: 0, otPay: 0.00 },
+        { date: '2026-09-12', day: 'Saturday', time: '18:00', otHours: 1.0, foodMoney: 17, otPay: 10.62 },
+        { date: '2026-09-13', day: 'Sunday', time: '16:00', otHours: 0.0, foodMoney: 0, otPay: 0.00 },
+        { date: '2026-09-14', day: 'Monday', time: '18:00', otHours: 1.0, foodMoney: 17, otPay: 10.62 },
+        { date: '2026-09-15', day: 'Tuesday', time: '18:00', otHours: 1.0, foodMoney: 17, otPay: 10.62 },
+        { date: '2026-09-16', day: 'Wednesday', time: '22:00', otHours: 5.0, foodMoney: 17, otPay: 53.10 },
+        { date: '2026-09-17', day: 'Thursday', time: '20:00', otHours: 3.0, foodMoney: 17, otPay: 31.86 },
+        { date: '2026-09-18', day: 'Friday', time: '00:00', otHours: 0.0, foodMoney: 0, otPay: 0.00 },
+        { date: '2026-09-19', day: 'Saturday', time: '18:00', otHours: 1.0, foodMoney: 17, otPay: 10.62 },
+        { date: '2026-09-20', day: 'Sunday', time: '18:00', otHours: 1.0, foodMoney: 17, otPay: 10.62 },
+        { date: '2026-09-21', day: 'Monday', time: '19:30', otHours: 2.5, foodMoney: 17, otPay: 26.55 }
+    ];
+
+    document.getElementById('entryDate').valueAsDate = new Date();
+
+    function format12Hour(timeStr) {
+        if (!timeStr || timeStr === '00:00') return '-';
+        let [h, m] = timeStr.split(':').map(Number);
+        let period = h >= 12 ? 'PM' : 'AM';
+        h = h % 12 || 12;
+        return `${h}:${m.toString().padStart(2, '0')} ${period}`;
+    }
+
+    function addEntry() {
+        const dateVal = document.getElementById('entryDate').value;
+        let timeVal = document.getElementById('leaveTime').value;
+
+        if (!dateVal || !timeVal) {
+            alert("Please select both Date and Leave Time!");
+            return;
+        }
+
+        const dateObj = new Date(dateVal);
+        const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
+        const isFriday = dateObj.getDay() === 5;
+
+        let [hours, minutes] = timeVal.split(':').map(Number);
+
+        // Auto-convert to PM if user selected hours between 1 and 11
+        if (hours >= 1 && hours <= 11) {
+            hours += 12;
+            timeVal = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        }
+
+        let otHours = 0;
+
+        if (isFriday) {
+            let totalMins = (hours * 60 + minutes) - (8 * 60);
+            if (totalMins > 0) otHours = totalMins / 60;
+        } else {
+            let leaveMins = hours * 60 + minutes;
+            let standardLeaveMins = 17 * 60; // 5:00 PM
+            if (leaveMins > standardLeaveMins) {
+                otHours = (leaveMins - standardLeaveMins) / 60;
+            }
+        }
+
+        let foodMoney = otHours > 0 ? FOOD_ALLOWANCE : 0;
+        let otPay = otHours * OT_RATE;
+
+        records.push({
+            date: dateVal,
+            day: dayName,
+            time: timeVal,
+            otHours: otHours,
+            foodMoney: foodMoney,
+            otPay: otPay
+        });
+
+        updateTable();
+    }
+
+    function deleteRecord(index) {
+        records.splice(index, 1);
+        updateTable();
+    }
+
+    function updateTable() {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+
+        let totalDays = 0;
+        let totalHours = 0;
+        let totalFood = 0;
+        let totalPay = 0;
+
+        records.forEach((r, idx) => {
+            if (r.otHours > 0) totalDays++;
+            totalHours += r.otHours;
+            totalFood += r.foodMoney;
+            totalPay += r.otPay;
+
+            const isFriday = r.day === 'Friday';
+            const row = `<tr class="${isFriday ? 'friday' : ''}">
+                <td>${r.date}</td>
+                <td>${r.day}</td>
+                <td>${format12Hour(r.time)}</td>
+                <td>${r.otHours.toFixed(2)}</td>
+                <td>${r.foodMoney.toFixed(2)} SAR</td>
+                <td>${r.otPay.toFixed(2)} SAR</td>
+                <td><button class="btn-delete" onclick="deleteRecord(${idx})">Delete</button></td>
+            </tr>`;
+            tbody.innerHTML += row;
+        });
+
+        document.getElementById('totalOtDays').innerText = totalDays;
+        document.getElementById('totalOtHours').innerText = totalHours.toFixed(2) + ' hrs';
+        document.getElementById('totalFood').innerText = totalFood.toFixed(2) + ' SAR';
+        document.getElementById('totalOtPay').innerText = totalPay.toFixed(2) + ' SAR';
+        document.getElementById('grandTotal').innerText = (totalFood + totalPay).toFixed(2) + ' SAR';
+    }
+
+    function generatePDF() {
+        if(records.length === 0) {
+            alert("No records to export!");
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Title Section
+        doc.setFontSize(18);
+        doc.setTextColor(30, 41, 59);
+        doc.text("MONTHLY OVERTIME TIMESHEET", 14, 20);
+
+        doc.setFontSize(10);
+        doc.setTextColor(100, 116, 139);
+        doc.text("Employee Name: Md. Maruf Hasan", 14, 27);
+        doc.text(`Generated Date: ${new Date().toLocaleDateString()}`, 14, 32);
+        doc.text("Base Rate: 10.62 SAR/hr | Food Allowance: 17 SAR/day", 14, 37);
+
+        const tableColumn = ["Date", "Day", "Leave Time", "OT Hours", "Food (SAR)", "OT Pay (SAR)"];
+        const tableRows = [];
+
+        let totalHours = 0;
+        let totalFood = 0;
+        let totalPay = 0;
+
+        records.forEach(r => {
+            totalHours += r.otHours;
+            totalFood += r.foodMoney;
+            totalPay += r.otPay;
+
+            tableRows.push([
+                r.date,
+                r.day,
+                format12Hour(r.time),
+                r.otHours.toFixed(2),
+                r.foodMoney.toFixed(2),
+                r.otPay.toFixed(2)
+            ]);
+        });
+
+        doc.autoTable({
+            head: [tableColumn],
+            body: tableRows,
+            startY: 42,
+            headStyles: { fillColor: [30, 41, 59] },
+            alternateRowStyles: { fillColor: [248, 250, 252] },
+            styles: { fontSize: 9 }
+        });
+
+        let finalY = doc.lastAutoTable.finalY + 10;
+        
+        doc.setFillColor(241, 245, 249);
+        doc.rect(14, finalY, 182, 35, 'F');
+
+        doc.setFontSize(10);
+        doc.setTextColor(30, 41, 59);
+        doc.text(`Total OT Hours: ${totalHours.toFixed(2)} hrs`, 20, finalY + 10);
+        doc.text(`Total Food Allowance: ${totalFood.toFixed(2)} SAR`, 20, finalY + 17);
+        doc.text(`Total Overtime Pay: ${totalPay.toFixed(2)} SAR`, 20, finalY + 24);
+        
+        doc.setFontSize(11);
+        doc.setFont(undefined, 'bold');
+        doc.text(`Grand Total Amount: ${(totalFood + totalPay).toFixed(2)} SAR`, 110, finalY + 17);
+
+        // Signature section
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        doc.text("_______________________", 14, finalY + 55);
+        doc.text("Employee Signature", 14, finalY + 62);
+
+        doc.text("_______________________", 135, finalY + 55);
+        doc.text("Supervisor Approval", 135, finalY + 62);
+
+        doc.save("Md_Maruf_Hasan_Overtime_Timesheet.pdf");
+    }
+
+    // Initialize Table
+    updateTable();
+</script>
+
+</body>
+</html>
